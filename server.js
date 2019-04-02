@@ -7,33 +7,44 @@ const db = require('./db_creds');
 const MongoClient = require('mongodb').MongoClient;
 const uri = db.dbCredentials.uri;
 //"mongodb+srv://adminUser:Adm1npa55!!!@wpcluster0-lxein.mongodb.net/test?retryWrites=true";
-//const mongo = new MongoClient(uri, { useNewUrlParser: true });
-// mongo.connect(err => {
-//   const collection = mongo.db("golf_db").collection("users");
-//   // perform actions on the collection object
-//   mongo.close();
-// });
 
 
+//public files folder:
 app.use(express.static('public'));
 
 const urlEncodedParser = bodyParser.urlencoded({
     extended: false
 })
 
-app.get('/', function (req, res) {
-    console.log("Got a GET request for the homepage");
+//retrieve a list of users. If an id is attached, retrieve a single user
+app.get('/users', function (req, res) {
+
+    console.log("Got a GET request for /users");
     res.send('Hello GET');
 })
 
-app.post('/', function(req, res) {
-    console.log("Got a POST request for the homepage");
+//retrieve a single user by id
+app.get('/users/:userId', function (req, res) {
+
+    console.log("Got a GET request for /users");
+    res.send('Hello GET for user id = ' + req.params.userId);
+})
+
+//create a user
+app.post('/users', function(req, res) {
+    console.log("Got a POST request for /users");
     res.send("Hello POST");
 })
 
-app.delete('/del_user', function(req, res) {
-    console.log("Got a DELETE request for /del_user");
-    res.send("Hello DELETE");
+//delete a user
+app.delete('/users/:userId', function(req, res) {
+    console.log("Got a DELETE request for /users");
+    res.send("Hello DELETE for user id = " + req.params.userId);
+})
+
+app.put('/users/:userId', function(req, res) {
+    //console.log("Got an UPDATE request for /users");
+    res.send("Hello UPDATE for user id = " + req.params.userId);
 })
 
 app.get('/list_users', function(req, res) {
