@@ -18,5 +18,7 @@ To run this project, you must connect it to a MongoDB Cluster. To do this:
 * Run ```npm install```
 * Once dependencies are installed, run ```node server.js```
 
+##NOTES:
+* The MongoDB connection will not work through a proxy or enterprise firewall. Unfortunately, it silently fails. Use the console logs to debug.
 
 

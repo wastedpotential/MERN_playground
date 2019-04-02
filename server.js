@@ -6,8 +6,6 @@ const db = require('./db_creds');
 //connect to mongo DB:
 const MongoClient = require('mongodb').MongoClient;
 const uri = db.dbCredentials.uri;
-//"mongodb+srv://adminUser:Adm1npa55!!!@wpcluster0-lxein.mongodb.net/test?retryWrites=true";
-
 
 //public files folder:
 app.use(express.static('public'));
@@ -19,36 +17,7 @@ const urlEncodedParser = bodyParser.urlencoded({
 //retrieve a list of users. If an id is attached, retrieve a single user
 app.get('/users', function (req, res) {
 
-    console.log("Got a GET request for /users");
-    res.send('Hello GET');
-})
-
-//retrieve a single user by id
-app.get('/users/:userId', function (req, res) {
-
-    console.log("Got a GET request for /users");
-    res.send('Hello GET for user id = ' + req.params.userId);
-})
-
-//create a user
-app.post('/users', function(req, res) {
-    console.log("Got a POST request for /users");
-    res.send("Hello POST");
-})
-
-//delete a user
-app.delete('/users/:userId', function(req, res) {
-    console.log("Got a DELETE request for /users");
-    res.send("Hello DELETE for user id = " + req.params.userId);
-})
-
-app.put('/users/:userId', function(req, res) {
-    //console.log("Got an UPDATE request for /users");
-    res.send("Hello UPDATE for user id = " + req.params.userId);
-})
-
-app.get('/list_users', function(req, res) {
-    console.log("Got a GET request for /list_users");
+    console.log("GET request for /users");
     MongoClient.connect(uri, {useNewUrlParser: true}, function(err, client) {
         if(err) {
              res.send('Error occurred while connecting to MongoDB Atlas...\n',err);
@@ -64,19 +33,17 @@ app.get('/list_users', function(req, res) {
         })
         client.close();
      });
-     //res.send('User listing - check console for data');
 })
 
-app.get('/ab*cd', function(req, res) {
-    console.log("Got a GET request for /ab*cd");
-    res.send('Page pattern match');
+//retrieve a single user by id
+app.get('/users/:userId', function (req, res) {
+
+    console.log("Got a GET request for /users");
+    res.send('Hello GET for user id = ' + req.params.userId);
 })
 
-app.get('/index.html', function(req, res) {
-    res.sendFile( __dirname + "/" + "index.html");
-})
-
-app.post('/process_post', urlEncodedParser, function(req, res) {
+//create a user
+app.post('/users', urlEncodedParser, function(req, res) {
     let postData = {
         first_name: req.body.first_name,
         last_name: req.body.last_name
@@ -97,6 +64,22 @@ app.post('/process_post', urlEncodedParser, function(req, res) {
         client.close();
      });
     res.end(JSON.stringify(postData)); //display the data on the page
+})
+
+//delete a user
+app.delete('/users/:userId', urlEncodedParser, function(req, res) {
+    console.log("Got a DELETE request for /users");
+    res.send("Hello DELETE for user id = " + req.params.userId);
+})
+
+app.put('/users/:userId', urlEncodedParser, function(req, res) {
+    //console.log("Got an UPDATE request for /users");
+    res.send("Hello UPDATE for user id = " + req.params.userId);
+})
+
+//form page:
+app.get('/index.html', function(req, res) {
+    res.sendFile( __dirname + "/" + "index.html");
 })
 
 
