@@ -1,0 +1,29 @@
+{
+  "name": "mern_playground",
+  "version": "1.0.0",
+  "description": "a testbed for MongoDB, Express, React, Node projects. In the current form, I'm experimenting with MongoDB and Express.",
+  "main": "server.js",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.4",
+    "express": "^4.16.4",
+    "joi": "^14.3.1",
+    "mongodb": "^3.2.2",
+    "multer": "^1.4.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wastedpotential/MERN_playground.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wastedpotential/MERN_playground/issues"
+  },
+  "homepage": "https://github.com/wastedpotential/MERN_playground#readme"
+}
