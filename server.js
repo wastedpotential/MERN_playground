@@ -4,15 +4,17 @@ const bodyParser = require('body-parser');
 const MongoClient = require('mongodb').MongoClient;
 
 const app = express();
+//app.use(express.json()); //would be used if all data was submitted in json format
+//app.use(express.urlencoded({extended: false}))
 app.use(express.static('public')); //public files folder
+//this is needed to decode the formdata submissions:
+const urlEncodedParser = bodyParser.urlencoded({
+    extended: false
+})
 
 //connect to mongo DB:
 const db = require('./db_creds');
 const uri = db.dbCredentials.uri;
-
-const urlEncodedParser = bodyParser.urlencoded({
-    extended: false
-})
 
 //retrieve a list of users. If an id is attached, retrieve a single user
 app.get('/users', function (req, res) {
@@ -25,9 +27,9 @@ app.get('/users', function (req, res) {
         console.log('Connected...');
         const collection = client.db("golf_db").collection("users");
         //note: there are no unique indexes on this data yet!
-        collection.find({}).toArray(function(err, result) {
+        collection.find({ enabled: true }, { enabled: 0 }).toArray(function(err, result) {
             if (err) {
-                res.send("ERROR: problem retrieving users")
+                res.status(404).send("ERROR: problem retrieving users")
             }
             res.send(result);
         })
@@ -50,29 +52,49 @@ app.get('/users/:id', function (req, res) {
 
 //create a user
 app.post('/users', urlEncodedParser, function(req, res) {
-    let postData = {
+    //turn urlencoded form data into json:
+    const postData = {
         first_name: req.body.first_name,
         last_name: req.body.last_name,
         email: req.body.email,
         enabled: true //used for soft delete. 
     }
-    console.log(postData);
+
+    //validate input:
+    const schema = {
+        first_name: Joi.string().min(1).required(),
+        last_name: Joi.string().min(2).required(),
+        email: Joi.string().email({minDomainSegments: 2}).required(),
+        enabled: Joi.boolean()
+    };
+    const {error} = Joi.validate(postData, schema);
+    if (error) {
+        return res.status().send(error.details[0].message);
+    }
+    
+    let insertError = ""
+    let insertResult = {};
     MongoClient.connect(uri, {useNewUrlParser: true}, function(err, client) {
         if(err) {
-             console.log('Error occurred while connecting to MongoDB Atlas...\n',err);
+            return res.send('ERROR: unable to connect to MongoDB Atlas...\n' + err);
         }
         console.log('Connected...');
         const collection = client.db("golf_db").collection("users");
         //note: there are no unique indexes on this data yet!
-        collection.insertOne(postData, function(err, res) {
+        collection.insertOne(postData, function(err, response) {
             if (err) {
-                console.log("ERROR: post failed!");
+                return res.send("ERROR: DB insert failed");
+            }
+            else {
+                insertResult = response.ops[0];
+                delete insertResult.enabled;
+                return res.send(JSON.stringify(insertResult));
             }
         })
         client.close();
-     });
-    res.end(JSON.stringify(postData)); //display the data on the page
-
+    });
+    
+    //TODO:
     //look for user with this email address
     //if success - return error (user already exists)
     //if fail, create new user, return user data - DO NOT DISPLAY enabled FLAG
