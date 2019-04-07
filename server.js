@@ -6,11 +6,13 @@ const MongoClient = require('mongodb').MongoClient;
 const app = express();
 //app.use(express.json()); //would be used if all data was submitted in json format
 //app.use(express.urlencoded({extended: false}))
+app.use(express.json()); //handles json requests
+app.use(express.urlencoded({ extended: true })); //handles urlencoded requests
 app.use(express.static('public')); //public files folder
 //this is needed to decode the formdata submissions:
-const urlEncodedParser = bodyParser.urlencoded({
-    extended: false
-})
+// const urlEncodedParser = bodyParser.urlencoded({
+//     extended: false
+// })
 
 //connect to mongo DB:
 const db = require('./db_creds');
@@ -51,7 +53,7 @@ app.get('/users/:id', function (req, res) {
 })
 
 //create a user
-app.post('/users', urlEncodedParser, function(req, res) {
+app.post('/users', function(req, res) {
     //turn urlencoded form data into json:
     const postData = {
         first_name: req.body.first_name,
@@ -101,7 +103,7 @@ app.post('/users', urlEncodedParser, function(req, res) {
 })
 
 //delete a user
-app.delete('/users/:id', urlEncodedParser, function(req, res) {
+app.delete('/users/:id', function(req, res) {
     //console.log("Got a DELETE request for /users");
     res.send("DELETE for user id = " + req.params.id);
     //find user with this id and enabled = true
@@ -109,7 +111,7 @@ app.delete('/users/:id', urlEncodedParser, function(req, res) {
     //if fail, return error
 })
 
-app.put('/users/:id', urlEncodedParser, function(req, res) {
+app.put('/users/:id', function(req, res) {
     //console.log("Got an UPDATE request for /users");
     res.send("UPDATE for user id = " + req.params.id);
     //find user with this id and enabled = true
