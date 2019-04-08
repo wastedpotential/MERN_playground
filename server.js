@@ -1,6 +1,6 @@
 const express = require('express');
 const users = require('./routes/users');
-
+const home = require('./routes/home');
 const app = express();
 app.use(express.json()); //handles json requests
 app.use(express.urlencoded({ extended: true })); //handles urlencoded requests
@@ -8,11 +8,8 @@ app.use(express.static('public')); //public files folder
 
 //routes:
 app.use('/users', users);
+app.use('/', home);
 
-//form page:
-app.get('/index.html', function(req, res) {
-    res.sendFile( __dirname + "/" + "index.html");
-})
 
 
 //start server:
