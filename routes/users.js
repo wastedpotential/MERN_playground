@@ -1,83 +1,73 @@
-const MongoClient = require('mongodb').MongoClient;
+const mongoose = require('mongoose');
 const Joi = require('joi');
 const express = require('express')
 const router = express.Router();
 
-//connect to mongo DB:
-const db = require('../db_creds');
-const uri = db.dbCredentials.uri;
+const userSchema = new mongoose.Schema({
+    first_name: String,
+    last_name: String,
+    email: String,
+    isEnabled: {type: Boolean, default: true},
+    date_created: {type: Date, default: Date.now},
+    date_updated: Date
+})
+const User = mongoose.model('User', userSchema);
 
 //retrieve a list of users. If an id is attached, retrieve a single user
-router.get('/', function (req, res) {
-
-    console.log("GET request for /users");
-    MongoClient.connect(uri, {useNewUrlParser: true}, function(err, client) {
-        if(err) {
-            res.send('Error occurred while connecting to MongoDB Atlas...\n',err);
-        }
-        console.log('Connected...');
-        const collection = client.db("golf_db").collection("users");
-        //note: there are no unique indexes on this data yet!
-        collection.find({ enabled: true }, { enabled: 0 }).toArray(function(err, result) {
-            if (err) {
-                res.status(404).send("ERROR: problem retrieving users")
-            }
-            res.send(result);
-        })
-        client.close();
-    });
-
-    //return all users with enabled = true
-    // DO NOT DISPLAY enabled FLAG
+router.get('/', async function (req, res) {
+    //console.log("GET request for /users");
+    
+    try {
+        const users = await User
+            .find({isEnabled: true})
+            .select('first_name last_name email')
+        res.send(users);
+    }
+    catch(err) {
+        res.status(404).send(err);
+    }
 })
 
 //retrieve a single user by id
-router.get('/:id', function (req, res) {
-    console.log("GET request for user id = " + req.params.id);
-    res.send('Hello GET for user id = ' + req.params.id);
+router.get('/:id', async function (req, res) {
+    //console.log("GET request for user id = " + req.params.id);
 
-    //retrieve user from DB with id and enabled = true
-    //if fail, return error
-    //if success, return user data - DO NOT DISPLAY enabled FLAG
+    try {
+        const user = await User
+            .findOne({isEnabled: true, _id: req.params.id})
+            .select('first_name last_name email')
+        res.send(user);
+    }
+    catch(err) {
+        res.status(404).send(err);
+    }
 })
 
 //create a user
-router.post('/', function(req, res) {
-    
+router.post('/', async function(req, res) {
+    //console.log("POST request for /users);
+
     //validate input:
-    const schema = {
+    const validationSchema = {
         first_name: Joi.string().min(1).required(),
         last_name: Joi.string().min(2).required(),
         email: Joi.string().email({minDomainSegments: 2}).required(),
     };
-    const {error} = Joi.validate(req.body, schema);
+    const {error} = Joi.validate(req.body, validationSchema);
     if (error) {
         return res.status(400).send(error.details[0].message);
     }
-    
-    //add the enabled property (needed for soft delete):
-    req.body.enabled = true;
 
-    let insertResult = {};
-    MongoClient.connect(uri, {useNewUrlParser: true}, function(err, client) {
-        if(err) {
-            return res.status(400).send('ERROR: unable to connect to MongoDB Atlas...\n' + err);
-        }
-        console.log('Connected...');
-        const collection = client.db("golf_db").collection("users");
-        //note: there are no unique indexes on this data yet!
-        collection.insertOne(req.body, function(err, response) {
-            if (err) {
-                return res.status(400).send("ERROR: DB insert failed");
-            }
-            else {
-                insertResult = response.ops[0];
-                delete insertResult.enabled; //remove the enabled flag from the response
-                return res.send(JSON.stringify(insertResult));
-            }
-        })
-        client.close();
-    });
+    //if everything validated, insert it:
+    const newUser = new User(req.body);    
+    try {
+        const result = await newUser.save()
+        //TODO: remove hidden fields from result
+        res.send(result);
+    }
+    catch(err) {
+        res.status(400).send(err);
+    }
     
     //TODO:
     //look for user with this email address
@@ -85,13 +75,22 @@ router.post('/', function(req, res) {
     //if fail, create new user, return user data - DO NOT DISPLAY enabled FLAG
 })
 
-//delete a user
-router.delete('/:id', function(req, res) {
+//soft-delete a user
+router.delete('/:id', async function(req, res) {
     //console.log("Got a DELETE request for /users");
-    res.send("DELETE for user id = " + req.params.id);
-    //find user with this id and enabled = true
-    //if success, set enabled to false, return user - DO NOT DISPLAY enabled FLAG
-    //if fail, return error
+    
+    try {
+        const user = await User
+            .findOneAndUpdate({isEnabled: true, _id: req.params.id}, 
+                { $set: {
+                    isEnabled: false
+                }})
+            .select('first_name last_name email')
+        res.send(user);
+    }
+    catch(err) {
+        res.status(400).send(err);
+    }
 })
 
 router.put('/:id', function(req, res) {
