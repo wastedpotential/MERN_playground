@@ -12,9 +12,9 @@ app.use('/users', users);
 app.use('/', home);
 
 //connect to MongoDB:
-const db = require('./db_creds');
-const dbUri = db.dbCredentials.uri;
-//const dbUri = 'mongodb://localhost/golf_db';
+// const db = require('./db_creds');
+// const dbUri = db.dbCredentials.uri;
+const dbUri = 'mongodb://localhost/golf_db';
 mongoose.connect(dbUri, {useNewUrlParser: true})
     .then(() => console.log('connected to mongodb'))
     .catch(err => console.log('Error: could not connect to mongodb'));
