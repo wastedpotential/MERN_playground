@@ -15,17 +15,17 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        validate: {
-            isAsync: true,
-            validator: async function(v, callback) {
-                const result = await User.countDocuments({ email: v});
-                if (result === 0) {
-                    callback(true)
-                } else {
-                    callback(false);
-                }                
-            },
-            message: 'xxyDB insert failed: A user with this email already exists'
+        validate: function(v) {
+            return new Promise(function(resolve, reject) {
+                User.countDocuments({ email: v}, function(err, result) {
+                    if (result === 0) {
+                        resolve(true)
+                    } else {
+                        resolve(false);
+                    } 
+                });           
+            })
+            //message: 'xxyDB insert failed: A user with this email already exists'
         }
     },
     isEnabled: {
