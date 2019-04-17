@@ -84,16 +84,16 @@ router.post('/', async function(req, res) {
     }
 
     //look for existing user with this email:
-    // try {
-    //     const userCount = await User
-    //         .countDocuments({ email: req.body.email});
-    //     if (userCount > 0) {
-    //         return res.status(400).send("this email address already exists");
-    //     }        
-    // }
-    // catch(err) {
-    //     return res.send(err.message);
-    // }
+    try {
+        const userCount = await User
+            .countDocuments({ email: req.body.email});
+        if (userCount > 0) {
+            return res.status(400).send("this email address already exists");
+        }        
+    }
+    catch(err) {
+        return res.send(err.message);
+    }
 
     //if everything validated, insert it:
     const newUser = new User(req.body);    
@@ -106,10 +106,6 @@ router.post('/', async function(req, res) {
         return res.status(400).send(err.message);
     }
     
-    //TODO:
-    //look for user with this email address
-    //if success - return error (user already exists)
-    //if fail, create new user, return user data - DO NOT DISPLAY enabled FLAG
 })
 
 //soft-delete a user
