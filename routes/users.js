@@ -100,7 +100,13 @@ router.post('/', async function(req, res) {
     try {
         const result = await newUser.save()
         //TODO: remove hidden fields from result
-        return res.send(result);
+        cleanResult = {
+            _id: result._id,
+            first_name: result.first_name,
+            last_name: result.last_name,
+            email: result.email
+        }
+        return res.send(cleanResult);
     }
     catch(err) {
         return res.status(400).send(err.message);
