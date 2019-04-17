@@ -3,13 +3,43 @@ const Joi = require('joi');
 const express = require('express')
 const router = express.Router();
 
+//mongoose validation before inserting in mongoDB
 const userSchema = new mongoose.Schema({
-    first_name: String,
-    last_name: String,
-    email: String,
-    isEnabled: {type: Boolean, default: true},
-    date_created: {type: Date, default: Date.now()},
-    date_updated: {type: Date, default: Date.now()}
+    first_name: { 
+        type: String,
+        required: true
+    },
+    last_name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        validate: {
+            isAsync: true,
+            validator: async function(v, callback) {
+                const result = await User.countDocuments({ email: v});
+                if (result === 0) {
+                    callback(true)
+                } else {
+                    callback(false);
+                }                
+            },
+            message: 'xxyDB insert failed: A user with this email already exists'
+        }
+    },
+    isEnabled: {
+        type: Boolean, 
+        default: true
+    },
+    date_created: {
+        type: Date, 
+        default: Date.now()
+    },
+    date_updated: {
+        type: Date, 
+        default: Date.now()
+    }
 })
 const User = mongoose.model('User', userSchema);
 
@@ -54,16 +84,16 @@ router.post('/', async function(req, res) {
     }
 
     //look for existing user with this email:
-    try {
-        const userCount = await User
-            .countDocuments({ email: req.body.email});
-        if (userCount > 0) {
-            return res.status(400).send("this email address already exists");
-        }        
-    }
-    catch(err) {
-        return res.send(err.message);
-    }
+    // try {
+    //     const userCount = await User
+    //         .countDocuments({ email: req.body.email});
+    //     if (userCount > 0) {
+    //         return res.status(400).send("this email address already exists");
+    //     }        
+    // }
+    // catch(err) {
+    //     return res.send(err.message);
+    // }
 
     //if everything validated, insert it:
     const newUser = new User(req.body);    
@@ -126,7 +156,7 @@ router.put('/:id', async function(req, res) {
 })
 
 function validateUserData(user) {
-    //validate input:
+    //validate input from REST service:
     const validationSchema = {
         first_name: Joi.string().min(1).required(),
         last_name: Joi.string().min(2).required(),
